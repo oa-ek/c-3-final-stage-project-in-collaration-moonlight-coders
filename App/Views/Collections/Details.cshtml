@@ -6,10 +6,7 @@
 }
 
 <style>
-    .header-section {
-        margin-bottom: 30px;
-    }
-
+    /* --- ОСНОВНІ СТИЛІ --- */
     .back-link {
         color: var(--accent-color);
         text-decoration: none;
@@ -19,6 +16,7 @@
         opacity: 0.7;
         transition: 0.3s;
         margin-bottom: 15px;
+        font-size: 0.9rem;
     }
 
         .back-link:hover {
@@ -26,7 +24,12 @@
             transform: translateX(-5px);
         }
 
-    .grid {
+    .header-section {
+        margin-bottom: 30px;
+    }
+
+    /* --- СІТКА СЕТІВ У ПАПЦІ --- */
+    .sets-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 25px;
@@ -51,7 +54,35 @@
             transform: translateY(-5px);
         }
 
-    /* МЕНЮ КРАПОК */
+    /* --- ФУТЕР КАРТКИ (СИНХРОНІЗАЦІЯ ЧАСУ) --- */
+    .card-footer {
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid rgba(240, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .date-info {
+        font-size: 0.7rem;
+        opacity: 0.4;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .sets-count-badge {
+        background: rgba(240, 255, 255, 0.1);
+        color: var(--accent-color);
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        width: fit-content;
+        margin-bottom: 5px;
+    }
+
+    /* --- МЕНЮ ТРЬОХ КРАПОК --- */
     .dots {
         position: absolute;
         top: 15px;
@@ -102,19 +133,18 @@
 <div class="content-area">
     <div class="header-section">
         <a asp-action="Index" class="back-link">← Назад до колекцій</a>
-        <h2 style="color: var(--accent-color); margin: 0;">@Model.Name</h2>
+        <h2 style="color: var(--accent-color); margin: 0; font-size: 1.8rem;">@Model.Name</h2>
         <p style="opacity: 0.6; margin: 5px 0 0 0;">@Model.Description</p>
     </div>
 
-    <div class="grid">
+    <div class="sets-grid">
         @foreach (var set in Model.Sets)
         {
-            <div class="set-card" onclick="handleCardClick(event, '@Url.Action("Details", "MySets", new { id = set.Id })')">
+            <div class="set-card" onclick="handleCardClick(event, '@Url.Action("Index", "Details", new { id = set.Id })')">
 
                 @* МЕНЮ ⋮ *@
                 <div class="dots" onclick="toggleMenu(event)">⋮</div>
                 <div class="dropdown">
-                    @* ФОРМА ВИДАЛЕННЯ З КОЛЕКЦІЇ *@
                     <form asp-action="RemoveSet" method="post" onsubmit="return confirm('Прибрати цей сет із папки?')">
                         <input type="hidden" name="setId" value="@set.Id" />
                         <input type="hidden" name="collectionId" value="@Model.Id" />
@@ -122,12 +152,32 @@
                     </form>
                 </div>
 
-                <h3 style="margin: 0 0 10px 0;">@set.Name</h3>
+                <h3 style="margin: 0 0 10px 0; color: var(--accent-color);">@set.Name</h3>
                 <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
 
-                <div style="font-size: 0.75rem; margin-top: 15px; opacity: 0.5; display: flex; justify-content: space-between;">
-                    <span>@set.FlashcardsCount карток</span>
-                    <span>@(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")</span>
+                @* ФУТЕР *@
+                <div class="card-footer">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="sets-count-badge">@set.FlashcardsCount карток</span>
+                        <span style="font-size: 0.75rem; opacity: 0.6;">@(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")</span>
+                    </div>
+
+                    @{
+                        var localUpdate = set.LastUpdatedAt.ToLocalTime();
+                    }
+                    <div class="date-info">
+                        <span>Оновлено:</span>
+                        <span style="color: var(--accent-color); opacity: 0.9;">
+                            @if (localUpdate.Date == DateTime.Today)
+                            {
+                                @localUpdate.ToString("HH:mm") 
+                            }
+                            else
+                            {
+                                @localUpdate.ToString("dd.MM.yyyy")
+                            }
+                        </span>
+                    </div>
                 </div>
             </div>
         }
@@ -157,7 +207,9 @@
         }
 
         window.onclick = (e) => {
-            if (!e.target.matches('.dots')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+            if (!e.target.matches('.dots')) {
+                document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+            }
         }
     </script>
 }
